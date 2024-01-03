@@ -1,0 +1,5 @@
+- Settings
+    - [x] Parse tags
+    - [x] Parse body
+    - [ ] Vault dir switcher
+    - [ ] Obsidian settings dir
