@@ -11,7 +11,7 @@ import frontmatter
 from albert import *
 
 md_iid = "2.1"
-md_version = "0.2"
+md_version = "0.3"
 md_name = "Obsidian"
 md_id = "obsidian"
 md_description = "Search/add notes in a Obsidian vault."
@@ -178,7 +178,7 @@ class Plugin(PluginInstance, GlobalQueryHandler, TriggerQueryHandler):
                         "open",
                         "Open",
                         lambda uri=note_uri: runDetachedProcess(["xdg-open", f"obsidian://open?{uri}"]),
-                    )
+                    ),
                     Action(
                         "copy",
                         "Copy URI",
