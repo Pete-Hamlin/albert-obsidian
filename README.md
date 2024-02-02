@@ -24,8 +24,21 @@ Then enable the plugin from the albert settings panel (you **must** enable the p
 
 ## Settings
 
+- `root_dir`: Root directory of Obsidian vault you wish to interact with - default `None`
+- `open_override`: Open action to use (see [below](#kde-open-issues)) - default `xdg-open`
+- `filter_by_tags`: When searching notes, include tags on the in the search criteria - default `True`
+- `filter_by_body`: When searching notes, include the text of a note in the search criteria - default `False`
+
+
+## `kde-open` Issues
+
+`kde-open` appears to have the behaviour of replacing `%20` encoding with raw spaces again, thereby breaking URI handling for obsidian.
+This means that `xdg-open` doesn't work correctly on KDE systems, as far as I can tell.
+`open_override` is therefore provided to allow a different command (confirmed that the gnome default `gio open` works as intended).
+
 ## Future Work
 
 Potential ideas to add in future versions:
 - [ ]  Open search directly in Obsidian
 - [ ] Vault selector via query
+- [ ] Custom metadata to add to the search criteria
