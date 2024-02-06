@@ -11,7 +11,7 @@ import frontmatter
 from albert import *
 
 md_iid = "2.1"
-md_version = "0.3"
+md_version = "0.4"
 md_name = "Obsidian"
 md_id = "obsidian"
 md_description = "Search/add notes in a Obsidian vault."
@@ -45,6 +45,7 @@ class Plugin(PluginInstance, GlobalQueryHandler, TriggerQueryHandler):
         PluginInstance.__init__(self, extensions=[self])
 
         self._root_dir = self.readConfig("root_dir", str) or ""
+        self._open_override = self.readConfig("open_override", str) or "xdg-open"
         self._config_dir = self.readConfig("config_dir", str) or ""
         self._filter_by_tags = self.readConfig("filter_by_tags", bool) or True
         self._filter_by_body = self.readConfig("filter_by_body", bool) or False
@@ -60,6 +61,16 @@ class Plugin(PluginInstance, GlobalQueryHandler, TriggerQueryHandler):
     def root_dir(self, value):
         self._root_dir = value
         self.writeConfig("root_dir", value)
+        self.root_path = Path(value)
+
+    @property
+    def open_override(self):
+        return self._open_override
+
+    @open_override.setter
+    def open_override(self, value):
+        self._open_override = value
+        self.writeConfig("open_override", value)
         self.root_path = Path(value)
 
     # @property
@@ -92,6 +103,7 @@ class Plugin(PluginInstance, GlobalQueryHandler, TriggerQueryHandler):
     def configWidget(self):
         return [
             {"type": "lineedit", "property": "root_dir", "label": "Path to notes vault"},
+            {"type": "lineedit", "property": "open_override", "label": "Open command to run Obsidian URI"},
             # {"type": "lineedit", "property": "config_dir", "label": "Path to Obsidian config"},
             {"type": "checkbox", "property": "filter_by_tags", "label": "Filter by note tags"},
             {"type": "checkbox", "property": "filter_by_body", "label": "Filter by note body"},
@@ -105,6 +117,8 @@ class Plugin(PluginInstance, GlobalQueryHandler, TriggerQueryHandler):
             data = self.parse_notes()
             notes = (item for item in data if stripped.lower() in self.create_filters(item))
             items = [item for item in self.gen_items(notes)]
+            text = parse.urlencode({"vault": self.root_path.name, "name": stripped}, quote_via=parse.quote)
+            run_args = self._open_override.split() + [f"obsidian://new?{text}"]
             query.add(items)
             query.add(
                 StandardItem(
@@ -116,16 +130,7 @@ class Plugin(PluginInstance, GlobalQueryHandler, TriggerQueryHandler):
                         Action(
                             "create",
                             "Create note",
-                            lambda name=stripped: runDetachedProcess(
-                                [
-                                    "xdg-open",
-                                    "obsidian://new?{}".format(
-                                        parse.urlencode(
-                                            {"vault": self.root_path.name, "name": name}, quote_via=parse.quote
-                                        )
-                                    ),
-                                ]
-                            ),
+                            lambda args=run_args: runDetachedProcess(args),
                         )
                     ],
                 )
@@ -168,6 +173,7 @@ class Plugin(PluginInstance, GlobalQueryHandler, TriggerQueryHandler):
             else:
                 subtext = str(note.path)
             note_uri = parse.urlencode({"vault": self.root_path.name, "file": note.path.name}, quote_via=parse.quote)
+            run_args = self._open_override.split() + [f"obsidian://open?{note_uri}"]
             yield StandardItem(
                 id=md_id,
                 text=note.path.name.replace(".md", ""),
@@ -177,8 +183,8 @@ class Plugin(PluginInstance, GlobalQueryHandler, TriggerQueryHandler):
                     Action(
                         "open",
                         "Open",
-                        lambda uri=note_uri: runDetachedProcess(["xdg-open", f"obsidian://open?{uri}"]),
+                        lambda args=run_args: runDetachedProcess(args),
                     ),
-                    Action("copy", "Copy URI", lambda uri=note_uri: setClipboardText(f"obsidian://open?{uri}")),
+                    Action("copy", "Copy URI", lambda uri=note_uri: setClipboardText(uri)),
                 ],
             )
