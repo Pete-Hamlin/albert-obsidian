@@ -4,6 +4,7 @@ Obsidian plugin for Albert launcher.
 Searches notes in an Obsidian vault. Allows for creation of new notes in the selected vault.
 
 """
+
 from pathlib import Path
 from urllib import parse
 
@@ -26,21 +27,13 @@ class Note:
         self.body = body
 
 
-class Plugin(PluginInstance, GlobalQueryHandler, TriggerQueryHandler):
+class Plugin(PluginInstance, GlobalQueryHandler):
     iconUrls = [
         f"file:{Path(__file__).parent}/obsidian.png",
         "xdg:folder-documents",
     ]
 
     def __init__(self):
-        TriggerQueryHandler.__init__(
-            self,
-            id=md_id,
-            name=md_name,
-            description=md_description,
-            synopsis="<note>",
-            defaultTrigger="obs ",
-        )
         GlobalQueryHandler.__init__(self, id=md_id, name=md_name, description=md_description, defaultTrigger="obs ")
         PluginInstance.__init__(self, extensions=[self])
 
@@ -51,7 +44,6 @@ class Plugin(PluginInstance, GlobalQueryHandler, TriggerQueryHandler):
         self._filter_by_body = self.readConfig("filter_by_body", bool) or False
 
         self.root_path = Path(self._root_dir)
-        # self.config_path = Path(self._config_dir)
 
     @property
     def root_dir(self):
@@ -72,14 +64,6 @@ class Plugin(PluginInstance, GlobalQueryHandler, TriggerQueryHandler):
         self._open_override = value
         self.writeConfig("open_override", value)
         self.root_path = Path(value)
-    # @property
-    # def config_dir(self):
-    #     return self._config_dir
-
-    # @config_dir.setter
-    # def config_dir(self, value):
-    #     self._config_dir = value
-    #     self.writeConfig("config_dir", value)
 
     @property
     def filter_by_tags(self):
@@ -103,7 +87,6 @@ class Plugin(PluginInstance, GlobalQueryHandler, TriggerQueryHandler):
         return [
             {"type": "lineedit", "property": "root_dir", "label": "Path to notes vault"},
             {"type": "lineedit", "property": "open_override", "label": "Open command to run Obsidian URI"},
-            # {"type": "lineedit", "property": "config_dir", "label": "Path to Obsidian config"},
             {"type": "checkbox", "property": "filter_by_tags", "label": "Filter by note tags"},
             {"type": "checkbox", "property": "filter_by_body", "label": "Filter by note body"},
         ]
@@ -124,7 +107,7 @@ class Plugin(PluginInstance, GlobalQueryHandler, TriggerQueryHandler):
                     id=md_id,
                     text="Create new Note",
                     subtext=f"{str(self.root_path)}/{stripped}",
-                    iconUrls=["xdg:gedit"],
+                    iconUrls=["xdg:accessories-text-editor"],
                     actions=[
                         Action(
                             "create",
@@ -184,10 +167,6 @@ class Plugin(PluginInstance, GlobalQueryHandler, TriggerQueryHandler):
                         "Open",
                         lambda args=run_args: runDetachedProcess(args),
                     ),
-                    Action(
-                        "copy",
-                        "Copy URI",
-                        lambda uri=note_uri: setClipboardText(uri)
-                    )
+                    Action("copy", "Copy URI", lambda uri=note_uri: setClipboardText(uri)),
                 ],
             )
