@@ -12,7 +12,7 @@ import frontmatter
 from albert import *
 
 md_iid = "2.1"
-md_version = "0.4"
+md_version = "0.5"
 md_name = "Obsidian"
 md_id = "obsidian"
 md_description = "Search/add notes in a Obsidian vault."
