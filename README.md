@@ -7,6 +7,8 @@ Currently supports the following features
     - Allows opening of searched note directly in obsidian
 - Global query results from vault notes via name/tags/body
     - Allows opening of searched note directly in obsidian
+- An indexer that re-indexes each time a note is created/moved/deleted
+- Some [basic settings](#settings) to customise behaviour
 - Creating a new note from query string:
 
 ![](new-note.png)
@@ -27,7 +29,7 @@ Then enable the plugin from the albert settings panel (you **must** enable the p
 - `root_dir`: Root directory of Obsidian vault you wish to interact with - default `None`
 - `open_override`: Open action to use (see [below](#kde-open-issues)) - default `xdg-open`
 - `filter_by_tags`: When searching notes, include tags on the in the search criteria - default `True`
-- `filter_by_body`: When searching notes, include the text of a note in the search criteria - default `False`
+- `filter_by_body`: When searching notes, include the text of a note in the search criteria (**WARNING**: This has potential to cause some performance issues, handle with care) - default `False`
 
 
 ## `kde-open` Issues
@@ -39,6 +41,7 @@ This means that `xdg-open` doesn't work correctly on KDE systems, as far as I ca
 ## Future Work
 
 Potential ideas to add in future versions:
-- [ ]  Open search directly in Obsidian
+- [ ] Add a list of ignore folders for extension (mainly to blacklist `.trash` from being parsed)
+- [ ] FallbackQuery handler
 - [ ] Vault selector via query
 - [ ] Custom metadata to add to the search criteria
