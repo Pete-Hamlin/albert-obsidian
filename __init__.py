@@ -8,13 +8,14 @@ Searches notes in an Obsidian vault. Allows for creation of new notes in the sel
 from pathlib import Path
 from urllib import parse
 from threading import Thread, Event
+from time import perf_counter_ns
 from watchfiles import Change, DefaultFilter, watch
 
 import frontmatter
 from albert import *
 
 md_iid = "2.2"
-md_version = "1.0"
+md_version = "1.1"
 md_name = "Obsidian"
 md_id = "obsidian"
 md_description = "Search/add notes in a Obsidian vault."
@@ -29,15 +30,18 @@ class Note:
         self.path = path
         self.body = body
 
+
 class CDFilter(DefaultFilter):
     """
     When it comes to indexing, we don't care about updates to the file, so this filter
     allows us to just watch for create/delete events and re-index accordingly when they happen
     """
+
     allowed_changes = [Change.added, Change.deleted]
 
     def __call__(self, change: Change, path: str) -> bool:
         return change in self.allowed_changes and super().__call__(change, path)
+
 
 class FileWatcherThread(Thread):
     def __init__(self, callback, path, *args, **kwargs) -> None:
@@ -89,7 +93,7 @@ class Plugin(PluginInstance, IndexQueryHandler):
     def root_dir(self, value):
         self._root_dir = value
         self.writeConfig("root_dir", value)
-        
+
         self.root_path = Path(value)
         self.thread.stop()
         self.thread.join()
@@ -132,6 +136,7 @@ class Plugin(PluginInstance, IndexQueryHandler):
         ]
 
     def updateIndexItems(self):
+        start = perf_counter_ns()
         notes = self.parse_notes()
         index_items = []
 
@@ -140,7 +145,7 @@ class Plugin(PluginInstance, IndexQueryHandler):
             item = self.gen_item(note)
             index_items.append(IndexItem(item=item, string=filter))
         self.setIndexItems(index_items)
-        info("Indexed {} notes".format(len(index_items)))
+        info("Indexed {} notes [{:d} ms]".format(len(index_items), (int(perf_counter_ns() - start) // 1000000)))
 
     def handleTriggerQuery(self, query):
         # Trigger query will ignore the index and always check against the latest vault state
