@@ -15,7 +15,7 @@ import frontmatter
 from albert import *
 
 md_iid = "2.2"
-md_version = "1.1"
+md_version = "1.2"
 md_name = "Obsidian"
 md_id = "obsidian"
 md_description = "Search/add notes in a Obsidian vault."
@@ -200,8 +200,8 @@ class Plugin(PluginInstance, IndexQueryHandler):
             subtext = " - ".join([str(note.path), ",".join(tags)])
         else:
             subtext = str(note.path)
-        note_uri = parse.urlencode({"vault": self.root_path.name, "file": note.path.name}, quote_via=parse.quote)
-        run_args = self._open_override.split() + [f"obsidian://open?{note_uri}"]
+        note_uri = "obsidian://open?{}".format(parse.urlencode({"vault": self.root_path.name, "file": note.path.name}, quote_via=parse.quote))
+        run_args = self._open_override.split() + [note_uri]
         return StandardItem(
             id=md_id,
             text=note.path.name.replace(".md", ""),
