@@ -14,8 +14,8 @@ from watchfiles import Change, DefaultFilter, watch
 import frontmatter
 from albert import *
 
-md_iid = "2.2"
-md_version = "1.2"
+md_iid = "2.3"
+md_version = "1.3"
 md_name = "Obsidian"
 md_id = "obsidian"
 md_description = "Search/add notes in a Obsidian vault."
@@ -66,10 +66,10 @@ class Plugin(PluginInstance, IndexQueryHandler):
     ]
 
     def __init__(self):
+        PluginInstance.__init__(self)
         IndexQueryHandler.__init__(
-            self, id=md_id, name=md_name, description=md_description, defaultTrigger="obs ", synopsis="<note>"
+            self, id=self.id, name=self.name, description=self.description, defaultTrigger="obs ", synopsis="<note>"
         )
-        PluginInstance.__init__(self, extensions=[self])
 
         self._root_dir = self.readConfig("root_dir", str) or ""
         self._open_override = self.readConfig("open_override", str) or "xdg-open"
@@ -81,7 +81,7 @@ class Plugin(PluginInstance, IndexQueryHandler):
         self.thread = FileWatcherThread(self.updateIndexItems, self._root_dir)
         self.thread.start()
 
-    def finalize(self):
+    def __del__(self):
         self.thread.stop()
         self.thread.join()
 
@@ -161,7 +161,7 @@ class Plugin(PluginInstance, IndexQueryHandler):
             query.add(items)
             query.add(
                 StandardItem(
-                    id=md_id,
+                    id=self.id,
                     text="Create new Note",
                     subtext=f"{str(self.root_path)}/{stripped}",
                     iconUrls=["xdg:accessories-text-editor"],
@@ -176,7 +176,7 @@ class Plugin(PluginInstance, IndexQueryHandler):
             )
         else:
             query.add(
-                StandardItem(id=md_id, text=md_name, subtext="Search for a note in Obsidian", iconUrls=self.iconUrls)
+                StandardItem(id=self.id, text=self.name, subtext="Search for a note in Obsidian", iconUrls=self.iconUrls)
             )
 
     def parse_notes(self):
@@ -203,7 +203,7 @@ class Plugin(PluginInstance, IndexQueryHandler):
         note_uri = "obsidian://open?{}".format(parse.urlencode({"vault": self.root_path.name, "file": note.path.name}, quote_via=parse.quote))
         run_args = self._open_override.split() + [note_uri]
         return StandardItem(
-            id=md_id,
+            id=self.id,
             text=note.path.name.replace(".md", ""),
             subtext=subtext,
             iconUrls=self.iconUrls,
