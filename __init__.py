@@ -15,9 +15,8 @@ import frontmatter
 from albert import *
 
 md_iid = "2.3"
-md_version = "1.3"
+md_version = "1.4"
 md_name = "Obsidian"
-md_id = "obsidian"
 md_description = "Search/add notes in a Obsidian vault."
 md_url = "https://github.com/Pete-Hamlin/albert-obsidian.git"
 md_license = "MIT"
@@ -154,7 +153,7 @@ class Plugin(PluginInstance, IndexQueryHandler):
             if not query.isValid:
                 return
             data = self.parse_notes()
-            notes = (item for item in data if stripped.lower() in self.create_filters(item))
+            notes = (item for item in data if all(filter in self.create_filters(item) for filter in query.string.split()))
             items = [self.gen_item(item) for item in notes]
             text = parse.urlencode({"vault": self.root_path.name, "name": stripped}, quote_via=parse.quote)
             run_args = self._open_override.split() + [f"obsidian://new?{text}"]
