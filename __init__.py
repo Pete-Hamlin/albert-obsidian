@@ -13,9 +13,10 @@ from watchfiles import Change, DefaultFilter, watch
 
 import frontmatter
 from albert import *
+from yaml.constructor import ConstructorError
 
 md_iid = "2.3"
-md_version = "1.4"
+md_version = "1.5"
 md_name = "Obsidian"
 md_description = "Search/add notes in a Obsidian vault."
 md_url = "https://github.com/Pete-Hamlin/albert-obsidian.git"
@@ -180,7 +181,12 @@ class Plugin(PluginInstance, IndexQueryHandler):
 
     def parse_notes(self):
         for item in self.root_path.rglob("*.md"):
-            yield Note(item, frontmatter.load(item))
+            try:
+                body = frontmatter.load(item)
+            except ConstructorError:
+                # If the frontmatter is unparsable (e.g. template, just skip it)
+                continue
+            yield Note(item, body)
 
     def create_filters(self, note: Note) -> str:
         filters, tags = note.path.name, note.body.get("tags")
