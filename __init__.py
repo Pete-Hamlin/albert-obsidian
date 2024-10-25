@@ -10,12 +10,13 @@ from urllib import parse
 from threading import Thread, Event
 from time import perf_counter_ns
 from watchfiles import Change, DefaultFilter, watch
+from yaml.constructor import ConstructorError
 
 import frontmatter
 from albert import *
 
 md_iid = "2.3"
-md_version = "1.4"
+md_version = "1.5"
 md_name = "Obsidian"
 md_description = "Search/add notes in a Obsidian vault."
 md_url = "https://github.com/Pete-Hamlin/albert-obsidian.git"
@@ -180,7 +181,10 @@ class Plugin(PluginInstance, IndexQueryHandler):
 
     def parse_notes(self):
         for item in self.root_path.rglob("*.md"):
-            yield Note(item, frontmatter.load(item))
+            try:
+                yield Note(item, frontmatter.load(item))
+            except ConstructorError:
+                warning(f"Unable to parse {item.name} - skipping")
 
     def create_filters(self, note: Note) -> str:
         filters, tags = note.path.name, note.body.get("tags")
