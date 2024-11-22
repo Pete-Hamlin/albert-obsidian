@@ -6,14 +6,14 @@ Searches notes in an Obsidian vault. Allows for creation of new notes in the sel
 """
 
 from pathlib import Path
-from urllib import parse
-from threading import Thread, Event
+from threading import Event, Thread
 from time import perf_counter_ns
-from watchfiles import Change, DefaultFilter, watch
-from yaml.constructor import ConstructorError
+from urllib import parse
 
 import frontmatter
 from albert import *
+from watchfiles import Change, DefaultFilter, watch
+from yaml.constructor import ConstructorError
 
 md_iid = "2.3"
 md_version = "1.5"
@@ -182,9 +182,12 @@ class Plugin(PluginInstance, IndexQueryHandler):
     def parse_notes(self):
         for item in self.root_path.rglob("*.md"):
             try:
-                yield Note(item, frontmatter.load(item))
+                body = frontmatter.load(item)
             except ConstructorError:
+                # If the frontmatter is unparsable (e.g. template, just skip it)
                 warning(f"Unable to parse {item.name} - skipping")
+                continue
+            yield Note(item, body)
 
     def create_filters(self, note: Note) -> str:
         filters, tags = note.path.name, note.body.get("tags")
