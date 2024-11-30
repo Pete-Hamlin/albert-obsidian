@@ -16,7 +16,7 @@ from watchfiles import Change, DefaultFilter, watch
 from yaml.constructor import ConstructorError
 
 md_iid = "2.3"
-md_version = "1.5"
+md_version = "1.6"
 md_name = "Obsidian"
 md_description = "Search/add notes in a Obsidian vault."
 md_url = "https://github.com/Pete-Hamlin/albert-obsidian.git"
@@ -52,7 +52,9 @@ class FileWatcherThread(Thread):
 
     def run(self):
         # Watch for file changes and re-index
-        for _ in watch(self.__path, watch_filter=CDFilter(), stop_event=self.__stop_event):
+        for _ in watch(
+            self.__path, watch_filter=CDFilter(), stop_event=self.__stop_event
+        ):
             self.__callback()
 
     def stop(self):
@@ -68,7 +70,12 @@ class Plugin(PluginInstance, IndexQueryHandler):
     def __init__(self):
         PluginInstance.__init__(self)
         IndexQueryHandler.__init__(
-            self, id=self.id, name=self.name, description=self.description, defaultTrigger="obs ", synopsis="<note>"
+            self,
+            id=self.id,
+            name=self.name,
+            description=self.description,
+            defaultTrigger="obs ",
+            synopsis="<note>",
         )
 
         self._root_dir = self.readConfig("root_dir", str) or ""
@@ -129,10 +136,26 @@ class Plugin(PluginInstance, IndexQueryHandler):
 
     def configWidget(self):
         return [
-            {"type": "lineedit", "property": "root_dir", "label": "Path to notes vault"},
-            {"type": "lineedit", "property": "open_override", "label": "Open command to run Obsidian URI"},
-            {"type": "checkbox", "property": "filter_by_tags", "label": "Filter by note tags"},
-            {"type": "checkbox", "property": "filter_by_body", "label": "Filter by note body"},
+            {
+                "type": "lineedit",
+                "property": "root_dir",
+                "label": "Path to notes vault",
+            },
+            {
+                "type": "lineedit",
+                "property": "open_override",
+                "label": "Open command to run Obsidian URI",
+            },
+            {
+                "type": "checkbox",
+                "property": "filter_by_tags",
+                "label": "Filter by note tags",
+            },
+            {
+                "type": "checkbox",
+                "property": "filter_by_body",
+                "label": "Filter by note body",
+            },
         ]
 
     def updateIndexItems(self):
@@ -145,7 +168,11 @@ class Plugin(PluginInstance, IndexQueryHandler):
             item = self.gen_item(note)
             index_items.append(IndexItem(item=item, string=filter))
         self.setIndexItems(index_items)
-        info("Indexed {} notes [{:d} ms]".format(len(index_items), (int(perf_counter_ns() - start) // 1000000)))
+        info(
+            "Indexed {} notes [{:d} ms]".format(
+                len(index_items), (int(perf_counter_ns() - start) // 1000000)
+            )
+        )
 
     def handleTriggerQuery(self, query):
         # Trigger query will ignore the index and always check against the latest vault state
@@ -154,9 +181,18 @@ class Plugin(PluginInstance, IndexQueryHandler):
             if not query.isValid:
                 return
             data = self.parse_notes()
-            notes = (item for item in data if all(filter in self.create_filters(item) for filter in query.string.split()))
+            notes = (
+                item
+                for item in data
+                if all(
+                    filter in self.create_filters(item)
+                    for filter in query.string.split()
+                )
+            )
             items = [self.gen_item(item) for item in notes]
-            text = parse.urlencode({"vault": self.root_path.name, "name": stripped}, quote_via=parse.quote)
+            text = parse.urlencode(
+                {"vault": self.root_path.name, "name": stripped}, quote_via=parse.quote
+            )
             run_args = self._open_override.split() + [f"obsidian://new?{text}"]
             query.add(items)
             query.add(
@@ -176,7 +212,12 @@ class Plugin(PluginInstance, IndexQueryHandler):
             )
         else:
             query.add(
-                StandardItem(id=self.id, text=self.name, subtext="Search for a note in Obsidian", iconUrls=self.iconUrls)
+                StandardItem(
+                    id=self.id,
+                    text=self.name,
+                    subtext="Search for a note in Obsidian",
+                    iconUrls=self.iconUrls,
+                )
             )
 
     def parse_notes(self):
@@ -193,6 +234,7 @@ class Plugin(PluginInstance, IndexQueryHandler):
         filters, tags = note.path.name, note.body.get("tags")
         if self._filter_by_tags and tags:
             if isinstance(tags, list):
+                tags = [tag or "" for tag in tags]
                 filters += ",".join(tags)
             else:
                 filters += str(tags)
@@ -203,10 +245,16 @@ class Plugin(PluginInstance, IndexQueryHandler):
     def gen_item(self, note: Note):
         tags = note.body.get("tags")
         if tags:
+            tags = (tag or "" for tag in tags)
             subtext = " - ".join([str(note.path), ",".join(tags)])
         else:
             subtext = str(note.path)
-        note_uri = "obsidian://open?{}".format(parse.urlencode({"vault": self.root_path.name, "file": note.path.name}, quote_via=parse.quote))
+        note_uri = "obsidian://open?{}".format(
+            parse.urlencode(
+                {"vault": self.root_path.name, "file": note.path.name},
+                quote_via=parse.quote,
+            )
+        )
         run_args = self._open_override.split() + [note_uri]
         return StandardItem(
             id=self.id,
