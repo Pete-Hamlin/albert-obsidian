@@ -85,6 +85,9 @@ class Plugin(PluginInstance, IndexQueryHandler):
         self.thread.stop()
         self.thread.join()
 
+    def defaultTrigger(self):
+        return "obs "
+
     @property
     def root_dir(self):
         return self._root_dir
@@ -206,9 +209,9 @@ class Plugin(PluginInstance, IndexQueryHandler):
         else:
             query.add(
                 StandardItem(
-                    id=self.id,
-                    text=self.name,
-                    subtext="Search for a note in Obsidian",
+                    id=str(self.id),
+                    text="Obsidian",
+                    subtext="Search for a note in Obsidian vault",
                     iconUrls=self.iconUrls,
                 )
             )
