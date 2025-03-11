@@ -15,8 +15,8 @@ from albert import *
 from watchfiles import Change, DefaultFilter, watch
 from yaml.constructor import ConstructorError
 
-md_iid = "2.3"
-md_version = "1.6"
+md_iid = "3.0"
+md_version = "1.7"
 md_name = "Obsidian"
 md_description = "Search/add notes in a Obsidian vault."
 md_url = "https://github.com/Pete-Hamlin/albert-obsidian.git"
@@ -69,17 +69,10 @@ class Plugin(PluginInstance, IndexQueryHandler):
 
     def __init__(self):
         PluginInstance.__init__(self)
-        IndexQueryHandler.__init__(
-            self,
-            id=self.id,
-            name=self.name,
-            description=self.description,
-            defaultTrigger="obs ",
-            synopsis="<note>",
-        )
+        IndexQueryHandler.__init__(self)
 
         self._root_dir = self.readConfig("root_dir", str) or ""
-        self._open_override = self.readConfig("open_override", str) or "xdg-open"
+        self._open_override: str = self.readConfig("open_override", str) or "xdg-open"
         self._config_dir = self.readConfig("config_dir", str) or ""
         self._filter_by_tags = self.readConfig("filter_by_tags", bool) or True
         self._filter_by_body = self.readConfig("filter_by_body", bool) or False
@@ -108,7 +101,7 @@ class Plugin(PluginInstance, IndexQueryHandler):
         self.thread.start()
 
     @property
-    def open_override(self):
+    def open_override(self) -> str:
         return self._open_override
 
     @open_override.setter
@@ -197,7 +190,7 @@ class Plugin(PluginInstance, IndexQueryHandler):
             query.add(items)
             query.add(
                 StandardItem(
-                    id=self.id,
+                    id=str(self.id),
                     text="Create new Note",
                     subtext=f"{str(self.root_path)}/{stripped}",
                     iconUrls=["xdg:accessories-text-editor"],
@@ -257,7 +250,7 @@ class Plugin(PluginInstance, IndexQueryHandler):
         )
         run_args = self._open_override.split() + [note_uri]
         return StandardItem(
-            id=self.id,
+            id=str(self.id),
             text=note.path.name.replace(".md", ""),
             subtext=subtext,
             iconUrls=self.iconUrls,
