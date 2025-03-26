@@ -14,9 +14,10 @@ import frontmatter
 from albert import *
 from watchfiles import Change, DefaultFilter, watch
 from yaml.constructor import ConstructorError
+from yaml.parser import ParserError
 
 md_iid = "3.0"
-md_version = "1.7"
+md_version = "1.8"
 md_name = "Obsidian"
 md_description = "Search/add notes in a Obsidian vault."
 md_url = "https://github.com/Pete-Hamlin/albert-obsidian.git"
@@ -219,8 +220,9 @@ class Plugin(PluginInstance, IndexQueryHandler):
     def parse_notes(self):
         for item in self.root_path.rglob("*.md"):
             try:
+                print(item.name)
                 body = frontmatter.load(item)
-            except ConstructorError:
+            except (ConstructorError, ParserError):
                 # If the frontmatter is unparsable (e.g. template, just skip it)
                 warning(f"Unable to parse {item.name} - skipping")
                 continue
