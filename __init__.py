@@ -220,7 +220,6 @@ class Plugin(PluginInstance, IndexQueryHandler):
     def parse_notes(self):
         for item in self.root_path.rglob("*.md"):
             try:
-                print(item.name)
                 body = frontmatter.load(item)
             except (ConstructorError, ParserError):
                 # If the frontmatter is unparsable (e.g. template, just skip it)
