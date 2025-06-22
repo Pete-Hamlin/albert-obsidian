@@ -17,7 +17,7 @@ from yaml.constructor import ConstructorError
 from yaml.parser import ParserError
 
 md_iid = "3.0"
-md_version = "1.8"
+md_version = "1.9.0"
 md_name = "Obsidian"
 md_description = "Search/add notes in a Obsidian vault."
 md_url = "https://github.com/Pete-Hamlin/albert-obsidian.git"
@@ -72,6 +72,8 @@ class Plugin(PluginInstance, IndexQueryHandler):
         PluginInstance.__init__(self)
         IndexQueryHandler.__init__(self)
 
+        self.fbh = FBH(self)
+
         self._root_dir = self.readConfig("root_dir", str) or ""
         self._open_override: str = self.readConfig("open_override", str) or "xdg-open"
         self._config_dir = self.readConfig("config_dir", str) or ""
@@ -88,6 +90,9 @@ class Plugin(PluginInstance, IndexQueryHandler):
 
     def defaultTrigger(self):
         return "obs "
+
+    def extensions(self):
+        return [self, self.fbh]
 
     @property
     def root_dir(self):
@@ -217,6 +222,22 @@ class Plugin(PluginInstance, IndexQueryHandler):
                 )
             )
 
+    def createFallbackItem(self, q: str) -> Item:
+        stripped = q.strip()
+        text = parse.urlencode(
+            {"vault": self.root_path.name, "name": stripped}, quote_via=parse.quote
+        )
+        run_args = self._open_override.split() + [f"obsidian://new?{text}"]
+        return StandardItem(
+            id=self.id(),
+            text=self.name(),
+            subtext="Create note titled '{}' in obsidian".format(q),
+            iconUrls=["xdg:accessories-text-editor"],
+            actions=[
+                Action("create", "Create note", lambda args=run_args: runDetachedProcess(args)),
+            ]
+        )
+
     def parse_notes(self):
         for item in self.root_path.rglob("*.md"):
             try:
@@ -267,3 +288,21 @@ class Plugin(PluginInstance, IndexQueryHandler):
                 Action("copy", "Copy URI", lambda uri=note_uri: setClipboardText(uri)),
             ],
         )
+
+class FBH(FallbackHandler):
+
+    def __init__(self, p: Plugin):
+        FallbackHandler.__init__(self)
+        self.plugin = p
+
+    def id(self):
+        return "obsidian.fallbacks"
+
+    def name(self):
+        return md_name
+
+    def description(self):
+        return md_description
+
+    def fallbacks(self, q :str):
+        return [self.plugin.createFallbackItem(q)]
