@@ -13,6 +13,8 @@ Currently supports the following features
 
 ![](new-note.png)
 
+Additionally, from `1.9.0` onwards, supports a FallbackQuery to allow creating a new note from a global query.
+
 ## Install
 
 In order for this plugin to work, your Obsidian install  must be setup to [allow usage of Obsidian URI protocol](https://help.obsidian.md/Concepts/Obsidian+URI)
@@ -42,6 +44,6 @@ This means that `xdg-open` doesn't work correctly on KDE systems, as far as I ca
 
 Potential ideas to add in future versions:
 - [ ] Add a list of ignore folders for extension (mainly to blacklist `.trash` from being parsed)
-- [ ] FallbackQuery handler
+- [x] FallbackQuery handler
 - [ ] Vault selector via query
 - [ ] Custom metadata to add to the search criteria
